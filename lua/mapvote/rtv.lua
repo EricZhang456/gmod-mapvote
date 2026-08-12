@@ -44,7 +44,7 @@ end
 RTV.AddVote = function ( ply )
 	if RTV.CanVote( ply ) then
 		RTV.TotalVotes = RTV.TotalVotes + 1
-		ply.RtvRequested = true
+		ply.MapVote_RtvRequested = true
 		ServerLog(ply:Nick() .. " has voted to Rock the Vote.\n")
 		net.Start("RTV_Requested")
 		net.WriteString(ply:Nick())
@@ -67,7 +67,7 @@ RTV.CanVote = function ( ply )
 	if GetGlobalBool( "In_Voting" ) then
 		return false, "#mapvote.rtv_vote_in_progress"
 	end
-	if ply.RtvRequested then
+	if ply.MapVote_RtvRequested then
 		return false, "#mapvote.rtv_voted"
 	end
 	if RTV.ChangingMaps then
@@ -102,7 +102,7 @@ hook.Add( "PlayerSay", "MapVoteRtvChatCommand", function( ply, text )
 end )
 
 hook.Add( "PlayerDisconnected", "MapVoteRemoveRtvOnDisconnect", function( ply )
-	if ply.RtvRequested then
+	if ply.MapVote_RtvRequested then
 		RTV.RemoveVote()
 	end
 	timer.Simple( 0.1, function()

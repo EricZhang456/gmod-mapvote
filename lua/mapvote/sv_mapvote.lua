@@ -1,7 +1,6 @@
 local cvarDontDeleteRecentMaps = CreateConVar("gm_mapvote_dont_delete_recent_maps", "0", nil,
     "Don't delete recent maps on shutdown", 0, 1)
 
-local cooldownnum = MapVote.Config.MapsBeforeRevote or 3
 
 util.AddNetworkString("RAM_MapVoteStart")
 util.AddNetworkString("RAM_MapVoteUpdate")
@@ -43,6 +42,7 @@ do
 end
 
 local function CoolDownDoStuff()
+    local cooldownnum = MapVote.Config.MapsBeforeRevote or 3
     if #recentmaps == cooldownnum then
         table.remove(recentmaps)
     end
@@ -53,6 +53,31 @@ local function CoolDownDoStuff()
     file.Write("mapvote/recentmaps.json", util.TableToJSON(recentmaps))
 end
 
+MapVote.GetCurrentGameModeMapcycle = function ()
+    local gameModeMapcycle = MapVote.Mapcycle[engine.ActiveGamemode()]
+    if IsTableEmptyOrNil(gameModeMapcycle) then
+        ErrorNoHalt("Current game mode " .. engine.ActiveGamemode() .. " has no mapcycle, falling back to map discovery\n")
+        gameModeMapcycle = {}
+        local gamemodeFile = file.Read(GAMEMODE.Folder .. "/" .. GAMEMODE.FolderName .. ".txt", "GAME")
+        if gamemodeFile then
+            local gamemodeInfo = util.KeyValuesToTable(gamemodeFile)
+            local mapPrefix = gamemodeInfo.maps
+            if not mapPrefix then
+                error("Game mode " .. engine.ActiveGamemode() .. " has no map prefix specified!")
+            end
+            local gameMaps = file.Find("maps/*.bsp", "GAME")
+            for _, filename in ipairs(gameMaps) do
+                local mapName = string.StripExtension(string.GetFileFromFilename(filename)):lower()
+                if string.find(mapName, mapPrefix) then
+                    table.insert(gameModeMapcycle, mapName)
+                end
+            end
+        end
+    end
+
+    return gameModeMapcycle
+end
+
 MapVote.Start = function (length, current, limit, prefix, callback)
     local current = current or MapVote.Config.AllowCurrentMap or false
     local length = length or MapVote.Config.TimeLimit or 28
@@ -61,37 +86,12 @@ MapVote.Start = function (length, current, limit, prefix, callback)
     -- local prefix = prefix or MapVote.Config.MapPrefixes
     -- local autoGamemode = MapVote.Config.AutoGamemode or MapVote.Config.AutoGamemode == nil and true
 
-    local function GetCurrentGameModeMapcycle()
-        local gameModeMapcycle = MapVote.Mapcycle[engine.ActiveGamemode()]
-        if IsTableEmptyOrNil(gameModeMapcycle) then
-            ErrorNoHalt("Current game mode " .. engine.ActiveGamemode() .. " has no mapcycle, falling back to map discovery\n")
-            gameModeMapcycle = {}
-            local gamemodeFile = file.Read(GAMEMODE.Folder .. "/" .. GAMEMODE.FolderName .. ".txt", "GAME")
-            if gamemodeFile then
-                local gamemodeInfo = util.KeyValuesToTable(gamemodeFile)
-                local mapPrefix = gamemodeInfo.maps
-                if not mapPrefix then
-                    error("Game mode " .. engine.ActiveGamemode() .. " has no map prefix specified!")
-                end
-                local gameMaps = file.Find("maps/*.bsp", "GAME")
-                for _, filename in ipairs(gameMaps) do
-                    local mapName = string.StripExtension(string.GetFileFromFilename(filename)):lower()
-                    if string.find(mapName, mapPrefix) then
-                        table.insert(gameModeMapcycle, mapName)
-                    end
-                end
-            end
-        end
 
-        return gameModeMapcycle
-    end
-
-    local mapCycle = GetCurrentGameModeMapcycle()
-
+    local mapCycle = MapVote.GetCurrentGameModeMapcycle()
     local vote_maps = {}
-
     local mapcycleHasEnoughMaps = true
     if limit then
+        local cooldownnum = MapVote.Config.MapsBeforeRevote or 3
         mapcycleHasEnoughMaps = #mapCycle >= limit + cooldownnum
     end
 

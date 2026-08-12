@@ -71,6 +71,9 @@ MapVote.UPDATE_VOTE = 1
 MapVote.UPDATE_WIN = 3
 
 hook.Add( "Initialize", "MapVoteConfigSetup", function()
+    if not SERVER then
+        return
+    end
     if not file.IsDir( "mapvote", "DATA") then
         file.CreateDir( "mapvote" )
     end

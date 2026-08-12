@@ -86,6 +86,5 @@ concommand.Add( "rtv_start", RTV.StartVote )
 hook.Add( "PlayerSay", "RTV Chat Commands", function( ply, text )
 	if table.HasValue( RTV.ChatCommands, string.lower(text) ) then
 		RTV.StartVote( ply )
-		return ""
 	end
 end )

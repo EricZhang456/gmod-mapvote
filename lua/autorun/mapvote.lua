@@ -28,6 +28,9 @@ local MapVoteConfigDefault = {
 }
 --Default Config
 MapVote.ReladConfig = function ()
+    if not SERVER then
+        return
+    end
     do
         local fileContent = file.Read("mapvote/config.json", "DATA")
         if fileContent then
@@ -75,7 +78,7 @@ hook.Add( "Initialize", "MapVoteConfigSetup", function()
         file.Write( "mapvote/config.json", util.TableToJSON( MapVoteConfigDefault, true ) )
     end
     if not file.Exists("mapvote/mapcycle.json", "DATA") then
-        file.Write("mapvote/mapcycle.json", util.TableToJSON({}))
+        file.Write("mapvote/mapcycle.json", "{}\n")
     end
     MapVote.ReladConfig()
 end )
@@ -85,6 +88,7 @@ if SERVER then
     AddCSLuaFile("mapvote/cl_mapvote.lua")
     include("mapvote/sv_mapvote.lua")
     include("mapvote/rtv.lua")
+    resource.AddFile("resource/localization/en/mapvote.properties")
 else
     include("mapvote/cl_mapvote.lua")
 end

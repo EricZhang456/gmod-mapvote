@@ -90,9 +90,14 @@ end
 
 concommand.Add( "rtv_start", RTV.StartVote )
 
+local function TrimString(s)
+    return s:match( "^%s*(.-)%s*$" )
+end
+
 hook.Add( "PlayerSay", "MapVoteRtvChatCommand", function( ply, text )
-	if table.HasValue( RTV.ChatCommands, string.lower(text) ) then
+	if table.HasValue( RTV.ChatCommands, TrimString(text:lower()) ) then
 		RTV.StartVote( ply )
+		return ""
 	end
 end )
 

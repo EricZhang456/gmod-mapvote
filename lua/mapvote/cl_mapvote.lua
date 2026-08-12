@@ -60,13 +60,13 @@ net.Receive("RAM_MapVoteCancel", function()
     end
 end)
 net.Receive("RTV_Delay", function()
-    chat.AddText(Color( 102,255,51 ), "[RTV]", Color( 255,255,255 ), " " .. language.GetPhrase("mapvote.rtv_success_delayed"))
+    chat.AddText(Color( 255,255,255 ), language.GetPhrase("mapvote.rtv_success_delayed"))
 end)
 
 net.Receive("RTV_Requested", function (len, ply)
     local nick = net.ReadString()
     local rtvCount = net.ReadUInt(8)
-    local totalCount = net.ReadUint(8)
+    local totalCount = net.ReadUInt(8)
     chat.AddText(string.format(language.GetPhrase("mapvote.rtv_requested"), nick, rtvCount, totalCount))
 end)
 
@@ -197,7 +197,7 @@ function PANEL:Think()
         end
     end
     local timeLeft = math.Round(math.Clamp(MapVote.EndTime - CurTime(), 0, math.huge))
-    self.countDown:SetText(tostring(timeLeft or 0).. " " .. language.GetPhrase("mapvote.seconds"))
+    self.countDown:SetText(string.format(language.GetPhrase("mapvote.title"), timeLeft or 0))
     self.countDown:SizeToContents()
     self.countDown:CenterHorizontal()
 end

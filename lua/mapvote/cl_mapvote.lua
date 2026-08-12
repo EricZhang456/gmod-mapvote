@@ -60,7 +60,7 @@ net.Receive("RAM_MapVoteCancel", function()
     end
 end)
 net.Receive("RTV_Delay", function()
-    chat.AddText(Color( 102,255,51 ), "[RTV]", Color( 255,255,255 ), " The vote has been rocked, map vote will begin on round end")
+    chat.AddText(Color( 102,255,51 ), "[RTV]", Color( 255,255,255 ), " " .. language.GetPhrase("mapvote.rtv_success_delayed"))
 end)
 local PANEL = {}
 function PANEL:Init()
@@ -189,7 +189,7 @@ function PANEL:Think()
         end
     end
     local timeLeft = math.Round(math.Clamp(MapVote.EndTime - CurTime(), 0, math.huge))
-    self.countDown:SetText(tostring(timeLeft or 0).." seconds")
+    self.countDown:SetText(tostring(timeLeft or 0).. " " .. language.GetPhrase("mapvote.seconds"))
     self.countDown:SizeToContents()
     self.countDown:CenterHorizontal()
 end

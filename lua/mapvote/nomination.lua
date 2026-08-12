@@ -11,7 +11,7 @@ util.AddNetworkString("Nomination_Requested")
 util.AddNetworkString("Nomination_MapList")
 
 Nomination = {
-    --- @type string[]
+    --- @type {user: number, map: string}[]
     CurrentNominations = {}
 }
 
@@ -76,6 +76,13 @@ Nomination.AttemptToNominateMap = function (ply, map)
         return NominationStatus.MaxNominationReached
     end
 
+    local userId = ply:UserID()
+    for _, val in ipairs(Nomination.CurrentNominations) do
+        if val.user == userId then
+            return NominationStatus.ClientAlreadyNominated
+        end
+    end
+
     local targetMap = ""
     if map then
         targetMap = TrimString(map:lower())
@@ -96,7 +103,10 @@ Nomination.AttemptToNominateMap = function (ply, map)
         elseif nominationMap.status == NominationMapStatus.CurrentMap then
             return NominationMapStatus.CurrentMap
         else
-            table.insert(Nomination.CurrentNominations, targetMap)
+            table.insert(Nomination.CurrentNominations, {
+                client = userId,
+                map = targetMap
+            })
 
             net.Start("Nomination_Requested")
             net.WriteString(ply:Nick())
@@ -117,11 +127,35 @@ Nomination.AttemptToNominateMap = function (ply, map)
     return NominationStatus.Success
 end
 
+--- @param ply Player
+--- @param map string | nil
+local function ClientNominateCommand(ply, map)
+    local targetMap = TrimString(string.lower(map or ""))
+    local nominationStatus = Nomination.AttemptToNominateMap(ply, targetMap)
+    if nominationStatus == NominationStatus.Success then
+        return
+    end
+
+    local targetErrorStr = ""
+    if nominationStatus == NominationStatus.CurrentMap then
+        targetErrorStr = "#mapvote.nomination_cant_nominate_current_map"
+    elseif nominationStatus == NominationStatus.RecentlyPlayed then
+        targetErrorStr = "#mapvote.nomination_recent"
+    elseif nominationStatus == NominationStatus.MaxNominationReached then
+        targetErrorStr = "#mapvote.nomination_max_reached"
+    elseif nominationStatus == NominationStatus.NotInMapcycle then
+        targetErrorStr = "mapvote.nomination_not_in_mapcycle"
+    elseif nominationStatus == NominationStatus.ClientAlreadyNominated then
+        targetErrorStr = "#mapvote.nomination_nominated"
+    end
+
+    ply:PrintMessage(HUD_PRINTTALK, targetErrorStr)
+end
 
 concommand.Add("mapvote_nominate", function (ply, cmd, args, argStr)
     if #args > 0 then
-        Nomination.AttemptToNominateMap(ply, args[1])
+        ClientNominateCommand(ply, args[1])
     else
-        Nomination.AttemptToNominateMap(ply, "")
+        ClientNominateCommand(ply, "")
     end
 end, nil, "Nominates a map.")

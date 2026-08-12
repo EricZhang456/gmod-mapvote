@@ -97,7 +97,7 @@ MapVote.Start = function (length, current, limit, prefix, callback)
 
     if #nominations >= 0 then
         for _, val in ipairs(nominations) do
-            table.insert(vote_maps, val)
+            table.insert(vote_maps, val.map)
         end
     end
 

@@ -101,7 +101,8 @@ NominationStatus = {
     CurrentMap = 1,
     RecentlyPlayed = 2,
     MaxNominationReached = 3,
-    NotInMapcycle = 4
+    NotInMapcycle = 4,
+    ClientAlreadyNominated = 5
 }
 
 --- @enum NominationMapStatus

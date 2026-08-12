@@ -115,6 +115,7 @@ NominationMapStatus = {
 if SERVER then
     AddCSLuaFile()
     AddCSLuaFile("mapvote/cl_mapvote.lua")
+    AddCSLuaFile("mapvote/cl_nominate.lua")
     include("mapvote/sv_mapvote.lua")
     include("mapvote/rtv.lua")
     include("mapvote/nomination.lua")

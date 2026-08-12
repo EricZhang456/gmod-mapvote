@@ -43,7 +43,7 @@ end
 
 local function CoolDownDoStuff()
     local cooldownnum = MapVote.Config.MapsBeforeRevote or 3
-    if #recentmaps == cooldownnum then
+    while #recentmaps > cooldownnum do
         table.remove(recentmaps)
     end
     local curmap = game.GetMap():lower()

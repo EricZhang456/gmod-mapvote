@@ -1,3 +1,5 @@
+util.AddNetworkString("RTV_Requested")
+
 RTV = RTV or {}
 RTV.ChatCommands = {
 	"!rtv",
@@ -21,13 +23,13 @@ end
 RTV.Start = function ()
 	if GAMEMODE_NAME == "terrortown" then
 		net.Start("RTV_Delay")
-      		net.Broadcast()
+      	net.Broadcast()
 		hook.Add("TTTEndRound", "MapvoteDelayed", function()
 			MapVote.Start(nil, nil, nil, nil)
 		end)
 	elseif GAMEMODE_NAME == "deathrun" then
 		net.Start("RTV_Delay")
-      		net.Broadcast()
+      	net.Broadcast()
 		hook.Add("RoundEnd", "MapvoteDelayed", function()
 			MapVote.Start(nil, nil, nil, nil)
 		end)
@@ -44,8 +46,13 @@ RTV.AddVote = function ( ply )
 		RTV.TotalVotes = RTV.TotalVotes + 1
 		ply.RtvRequested = true
 		ServerLog(ply:Nick() .. " has voted to Rock the Vote.\n")
-		PrintMessage(HUD_PRINTTALK, string.format(language.GetPhrase("mapvote.rtv_requested"),
-			ply:Nick(), RTV.TotalVotes, math.Round(#player.GetAll() * RTV.Percentage)))
+		net.Start("RTV_Requested")
+		net.WriteString(ply:Nick())
+		-- current rtv count
+		net.WriteUInt(RTV.TotalVotes, 8)
+		-- total player count
+		net.WriteUInt(math.Round(#player.GetAll() * RTV.Percentage), 8)
+		net.Broadcast()
 		if RTV.ShouldChange() then
 			RTV.Start()
 		end

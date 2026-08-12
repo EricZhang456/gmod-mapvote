@@ -12,7 +12,7 @@ surface.CreateFont("RAM_VoteFontCountdown", {
     antialias = true,
     shadow = true
 })
-surface.CreateFont("RAM_VoteSysButton", 
+surface.CreateFont("RAM_VoteSysButton",
 {
     font = "Marlett",
     size = 13,
@@ -62,6 +62,14 @@ end)
 net.Receive("RTV_Delay", function()
     chat.AddText(Color( 102,255,51 ), "[RTV]", Color( 255,255,255 ), " " .. language.GetPhrase("mapvote.rtv_success_delayed"))
 end)
+
+net.Receive("RTV_Requested", function (len, ply)
+    local nick = net.ReadString()
+    local rtvCount = net.ReadUInt(8)
+    local totalCount = net.ReadUint(8)
+    chat.AddText(string.format(language.GetPhrase("mapvote.rtv_requested"), nick, rtvCount, totalCount))
+end)
+
 local PANEL = {}
 function PANEL:Init()
     self:ParentToHUD()

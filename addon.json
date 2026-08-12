@@ -1,0 +1,15 @@
+{
+    "title": "MapVote",
+    "type": "ServerContent",
+    "tags": [],
+    "ignore": [
+        ".gitignore",
+        ".git/*",
+        ".vscode/*",
+        "LICENSE",
+        "README.md",
+        "*.psd",
+        "*.vcproj",
+        "*.svn*"
+    ]
+}

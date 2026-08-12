@@ -1,3 +1,6 @@
+--- this whole thing fucking sucks, lua sucks, the original plugin sucks,
+--- everything sucks, it's over!
+
 MapVote = {}
 MapVote.Config = {}
 --[[
@@ -53,6 +56,12 @@ MapVote.ReladConfig = function ()
             end
         end
     end
+    if MapVote.Config.NominationLimit and MapVote.Config.MapLimit then
+        if MapVote.Config.NominationLimit > MapVote.Config.MapLimit then
+            ErrorNoHalt("NominationLimit is greater than MapLimit, clamping\n")
+            MapVote.Config.NominationLimit = MapVote.Config.MapLimit
+        end
+    end
     ServerLog("Reloaded mapvote config\n")
 end
 MapVote.HasExtraVotePower = function (ply)
@@ -86,11 +95,29 @@ hook.Add( "Initialize", "MapVoteConfigSetup", function()
     MapVote.ReladConfig()
 end )
 
+--- @enum NominationStatus
+NominationStatus = {
+    Success = 0,
+    CurrentMap = 1,
+    RecentlyPlayed = 2,
+    MaxNominationReached = 3,
+    NotInMapcycle = 4
+}
+
+--- @enum NominationMapStatus
+NominationMapStatus = {
+    CanNominate = 0,
+    RecentlyPlayed = 1,
+    Nominated = 2,
+    CurrentMap = 3
+}
+
 if SERVER then
     AddCSLuaFile()
     AddCSLuaFile("mapvote/cl_mapvote.lua")
     include("mapvote/sv_mapvote.lua")
     include("mapvote/rtv.lua")
+    include("mapvote/nomination.lua")
     resource.AddFile("resource/localization/en/mapvote.properties")
 else
     include("mapvote/cl_mapvote.lua")

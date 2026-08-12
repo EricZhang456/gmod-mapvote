@@ -78,6 +78,10 @@ MapVote.GetCurrentGameModeMapcycle = function ()
     return gameModeMapcycle
 end
 
+MapVote.GetRecentMaps = function ()
+    return recentmaps
+end
+
 MapVote.Start = function (length, current, limit, prefix, callback)
     local current = current or MapVote.Config.AllowCurrentMap or false
     local length = length or MapVote.Config.TimeLimit or 28
@@ -86,34 +90,44 @@ MapVote.Start = function (length, current, limit, prefix, callback)
     -- local prefix = prefix or MapVote.Config.MapPrefixes
     -- local autoGamemode = MapVote.Config.AutoGamemode or MapVote.Config.AutoGamemode == nil and true
 
+    local nominations = Nomination.CurrentNominations or {}
 
     local mapCycle = MapVote.GetCurrentGameModeMapcycle()
     local vote_maps = {}
+
+    if #nominations >= 0 then
+        for _, val in ipairs(nominations) do
+            table.insert(vote_maps, val)
+        end
+    end
+
     local mapcycleHasEnoughMaps = true
     if limit then
         local cooldownnum = MapVote.Config.MapsBeforeRevote or 3
         mapcycleHasEnoughMaps = #mapCycle >= limit + cooldownnum
     end
 
-    for _, map in RandomPairs(mapCycle) do
-        local map = map:lower()
-        local currentMap = game.GetMap():lower()
-        if not current and currentMap == map then
-            continue
-        end
-        if mapcycleHasEnoughMaps and cooldown and table.HasValue(recentmaps, map) then
-            continue
-        end
-        table.insert(vote_maps, map)
-        if limit and limit > 0 and #vote_maps >= limit then
-            break
+    if limit and #vote_maps < limit then
+        for _, map in RandomPairs(mapCycle) do
+            local map = map:lower()
+            local currentMap = game.GetMap():lower()
+            if not current and currentMap == map then
+                continue
+            end
+            if mapcycleHasEnoughMaps and cooldown and table.HasValue(recentmaps, map) then
+                continue
+            end
+            table.insert(vote_maps, map)
+            if limit and limit > 0 and #vote_maps >= limit then
+                break
+            end
         end
     end
 
     net.Start("RAM_MapVoteStart")
         net.WriteUInt(#vote_maps, 32)
-        for i = 1, #vote_maps do
-            net.WriteString(vote_maps[i])
+        for _, val in ipairs(vote_maps) do
+            net.WriteString(val)
         end
         net.WriteUInt(length, 32)
     net.Broadcast()

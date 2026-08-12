@@ -1,0 +1,5 @@
+net.Receive("Nomination_Requested", function (len, ply)
+    local nick = net.ReadString()
+    local map = net.ReadString()
+    chat.AddText(color_white, string.format(language.GetPhrase("mapvote.nomination_requested"), nick, map))
+end)

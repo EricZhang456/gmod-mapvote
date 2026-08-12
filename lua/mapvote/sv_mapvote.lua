@@ -41,20 +41,6 @@ do
     end
 end
 
-MapVote.Config = {}
-
-do
-    local fileContent = file.Read("mapvote/config.json", "DATA")
-    if fileContent then
-        local jsonContent = util.JSONToTable(fileContent)
-        if jsonContent then
-            MapVote.Config = jsonContent
-        else
-            ErrorNoHaltWithStack("Cannot parse config.json as JSON")
-        end
-    end
-end
-
 function CoolDownDoStuff()
     local cooldownnum = MapVote.Config.MapsBeforeRevote or 3
 
@@ -72,12 +58,12 @@ function CoolDownDoStuff()
 end
 
 function MapVote.Start(length, current, limit, prefix, callback)
-    current = current or MapVote.Config.AllowCurrentMap or false
-    length = length or MapVote.Config.TimeLimit or 28
-    limit = limit or MapVote.Config.MapLimit or 24
-    cooldown = MapVote.Config.EnableCooldown or MapVote.Config.EnableCooldown == nil and true
-    prefix = prefix or MapVote.Config.MapPrefixes
-    autoGamemode = autoGamemode or MapVote.Config.AutoGamemode or MapVote.Config.AutoGamemode == nil and true
+    local current = current or MapVote.Config.AllowCurrentMap or false
+    local length = length or MapVote.Config.TimeLimit or 28
+    local limit = limit or MapVote.Config.MapLimit or 24
+    local cooldown = MapVote.Config.EnableCooldown or MapVote.Config.EnableCooldown == nil and true
+    local prefix = prefix or MapVote.Config.MapPrefixes
+    -- local autoGamemode = MapVote.Config.AutoGamemode or MapVote.Config.AutoGamemode == nil and true
 
     local is_expression = false
 
@@ -176,6 +162,7 @@ function MapVote.Start(length, current, limit, prefix, callback)
 
         local gamemode = nil
 
+        --[[
         if (autoGamemode) then
             -- check if map matches a gamemode's map pattern
             for k, gm in pairs(engine.GetGamemodes()) do
@@ -191,8 +178,9 @@ function MapVote.Start(length, current, limit, prefix, callback)
                 end
             end
         else
-            print("not enabled")
+            ServerLog("autoGamemode not enabled\n")
         end
+        ]]--
         
         timer.Simple(4, function()
             if (hook.Run("MapVoteChange", map) ~= false) then

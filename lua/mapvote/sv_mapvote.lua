@@ -27,22 +27,38 @@ net.Receive("RAM_MapVoteUpdate", function(len, ply)
     end
 end)
 
-if file.Exists( "mapvote/recentmaps.txt", "DATA" ) then
-    recentmaps = util.JSONToTable(file.Read("mapvote/recentmaps.txt", "DATA"))
-else
-    recentmaps = {}
+local recentmaps = {}
+
+do
+    local fileContent = file.Read("mapvote/recentmaps.json", "DATA")
+    if fileContent then
+        local jsonContent = util.JSONToTable(fileContent)
+        if jsonContent then
+            recentmaps = jsonContent
+        else
+            ErrorNoHaltWithStack("Cannot parse recentmaps.json as JSON")
+        end
+    end
 end
 
-if file.Exists( "mapvote/config.txt", "DATA" ) then
-    MapVote.Config = util.JSONToTable(file.Read("mapvote/config.txt", "DATA"))
-else
-    MapVote.Config = {}
+MapVote.Config = {}
+
+do
+    local fileContent = file.Read("mapvote/config.json", "DATA")
+    if fileContent then
+        local jsonContent = util.JSONToTable(fileContent)
+        if jsonContent then
+            MapVote.Config = jsonContent
+        else
+            ErrorNoHaltWithStack("Cannot parse config.json as JSON")
+        end
+    end
 end
 
 function CoolDownDoStuff()
-    cooldownnum = MapVote.Config.MapsBeforeRevote or 3
+    local cooldownnum = MapVote.Config.MapsBeforeRevote or 3
 
-    if table.getn(recentmaps) == cooldownnum then 
+    if #recentmaps == cooldownnum then 
         table.remove(recentmaps)
     end
 
@@ -52,7 +68,7 @@ function CoolDownDoStuff()
         table.insert(recentmaps, 1, curmap)
     end
 
-    file.Write("mapvote/recentmaps.txt", util.TableToJSON(recentmaps))
+    file.Write("mapvote/recentmaps.json", util.TableToJSON(recentmaps))
 end
 
 function MapVote.Start(length, current, limit, prefix, callback)
@@ -195,8 +211,8 @@ function MapVote.Start(length, current, limit, prefix, callback)
 end
 
 hook.Add( "Shutdown", "RemoveRecentMaps", function()
-        if file.Exists( "mapvote/recentmaps.txt", "DATA" ) then
-            file.Delete( "mapvote/recentmaps.txt" )
+        if file.Exists( "mapvote/recentmaps.json", "DATA" ) then
+            file.Delete( "mapvote/recentmaps.json" )
         end
 end )
 
@@ -207,6 +223,6 @@ function MapVote.Cancel()
         net.Start("RAM_MapVoteCancel")
         net.Broadcast()
 
-        timer.Destroy("RAM_MapVote")
+        timer.Remove("RAM_MapVote")
     end
 end

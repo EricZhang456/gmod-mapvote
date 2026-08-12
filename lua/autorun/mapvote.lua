@@ -9,6 +9,7 @@ MapVoteConfigDefault = {
     EnableCooldown = true,
     MapsBeforeRevote = 3,
     RTVPlayerCount = 3,
+    UseMapList = true,
     MapPrefixes = {"ttt_"},
     AutoGamemode = false
 }
@@ -18,8 +19,8 @@ hook.Add( "Initialize", "MapVoteConfigSetup", function()
     if not file.Exists( "mapvote", "DATA") then
         file.CreateDir( "mapvote" )
     end
-    if not file.Exists( "mapvote/config.txt", "DATA" ) then
-        file.Write( "mapvote/config.txt", util.TableToJSON( MapVoteConfigDefault, true ) )
+    if not file.Exists( "mapvote/config.json", "DATA" ) then
+        file.Write( "mapvote/config.json", util.TableToJSON( MapVoteConfigDefault, true ) )
     end
 end )
 

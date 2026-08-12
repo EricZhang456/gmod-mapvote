@@ -8,7 +8,12 @@ local mapStatusLookup = {
 net.Receive("Nomination_Requested", function (len, ply)
     local nick = net.ReadString()
     local map = net.ReadString()
-    chat.AddText(color_white, string.format(language.GetPhrase("mapvote.nomination_requested"), nick, map))
+    local newNomination = net.ReadBool()
+    local targetTranslationStr = "mapvote.nomination_requested"
+    if not newNomination then
+        targetTranslationStr = "mapvote.nomination_change"
+    end
+    chat.AddText(color_white, string.format(language.GetPhrase(targetTranslationStr), nick, map))
 end)
 
 net.Receive("Nomination_MapList", function (len, ply)

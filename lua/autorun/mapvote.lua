@@ -24,8 +24,6 @@ local MapVoteConfigDefault = {
     EnableCooldown = true,
     MapsBeforeRevote = 3,
     RTVPlayerCount = 3,
-    UseMapList = false,
-    MapPrefixes = {"ttt_"}
     -- AutoGamemode = false
 }
 --Default Config
@@ -37,7 +35,7 @@ MapVote.ReladConfig = function ()
             if jsonContent then
                 MapVote.Config = jsonContent
             else
-                ErrorNoHaltWithStack("Cannot parse config.json as JSON")
+                error("Cannot parse config.json as JSON")
             end
         end
     end
@@ -48,7 +46,7 @@ MapVote.ReladConfig = function ()
             if jsonContent then
                 MapVote.Mapcycle = jsonContent
             else
-                ErrorNoHaltWithStack("Cannot parse mapcycle.json as JSON")
+                error("Cannot parse mapcycle.json as JSON")
             end
         end
     end
@@ -68,6 +66,7 @@ MapVote.Votes = {}
 MapVote.Allow = false
 MapVote.UPDATE_VOTE = 1
 MapVote.UPDATE_WIN = 3
+
 hook.Add( "Initialize", "MapVoteConfigSetup", function()
     if not file.IsDir( "mapvote", "DATA") then
         file.CreateDir( "mapvote" )
@@ -75,8 +74,12 @@ hook.Add( "Initialize", "MapVoteConfigSetup", function()
     if not file.Exists( "mapvote/config.json", "DATA" ) then
         file.Write( "mapvote/config.json", util.TableToJSON( MapVoteConfigDefault, true ) )
     end
+    if not file.Exists("mapvote/mapcycle.json", "DATA") then
+        file.Write("mapvote/mapcycle.json", util.TableToJSON({}))
+    end
     MapVote.ReladConfig()
 end )
+
 if SERVER then
     AddCSLuaFile()
     AddCSLuaFile("mapvote/cl_mapvote.lua")

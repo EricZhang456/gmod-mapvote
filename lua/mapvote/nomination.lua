@@ -1,6 +1,7 @@
 --- Nomination_Requested message structure:
 --- string: player name
 --- string: map name
+--- bool: true if it's a new nomination, false if it's not
 util.AddNetworkString("Nomination_Requested")
 
 --- Nomination_MapList message structure:
@@ -72,15 +73,19 @@ end
 --- @param map string
 --- @return NominationStatus
 Nomination.AttemptToNominateMap = function (ply, map)
-    if #Nomination.CurrentNominations >= MapVote.Config.NominationLimit then
-        return NominationStatus.MaxNominationReached
+    local clientAlreadyNominated = false
+    local clientNominationEntry = 0
+    local userId = ply:UserID()
+    for i, val in ipairs(Nomination.CurrentNominations) do
+        if val.user == userId then
+            clientAlreadyNominated = true
+            clientNominationEntry = i
+            break
+        end
     end
 
-    local userId = ply:UserID()
-    for _, val in ipairs(Nomination.CurrentNominations) do
-        if val.user == userId then
-            return NominationStatus.ClientAlreadyNominated
-        end
+    if not clientAlreadyNominated and #Nomination.CurrentNominations >= MapVote.Config.NominationLimit then
+        return NominationStatus.MaxNominationReached
     end
 
     local targetMap = ""
@@ -103,15 +108,21 @@ Nomination.AttemptToNominateMap = function (ply, map)
         elseif nominationMap.status == NominationMapStatus.CurrentMap then
             return NominationMapStatus.CurrentMap
         else
-            table.insert(Nomination.CurrentNominations, {
+            local nominationEntry = {
                 client = userId,
                 map = targetMap
-            })
+            }
+            if not clientAlreadyNominated then
+                table.insert(Nomination.CurrentNominations, nominationEntry)
+            else
+                Nomination.CurrentNominations[clientNominationEntry] = nominationEntry
+            end
 
             net.Start("Nomination_Requested")
             net.WriteString(ply:Nick())
             net.WriteString(map)
-            net.Send(ply)
+            net.WriteBool(not clientAlreadyNominated)
+            net.Broadcast()
 
             return NominationStatus.Success
         end
@@ -123,6 +134,7 @@ Nomination.AttemptToNominateMap = function (ply, map)
         net.WriteString(value.map)
         net.WriteUInt(value.status, 4)
     end
+    net.Send(ply)
 
     return NominationStatus.Success
 end
@@ -145,8 +157,6 @@ local function ClientNominateCommand(ply, map)
         targetErrorStr = "#mapvote.nomination_max_reached"
     elseif nominationStatus == NominationStatus.NotInMapcycle then
         targetErrorStr = "mapvote.nomination_not_in_mapcycle"
-    elseif nominationStatus == NominationStatus.ClientAlreadyNominated then
-        targetErrorStr = "#mapvote.nomination_nominated"
     end
 
     ply:PrintMessage(HUD_PRINTTALK, targetErrorStr)
@@ -159,3 +169,13 @@ concommand.Add("mapvote_nominate", function (ply, cmd, args, argStr)
         ClientNominateCommand(ply, "")
     end
 end, nil, "Nominates a map.")
+
+hook.Add("PlayerDisconnected", "MapVoteNominationDisconnect", function (ply)
+    for i = #Nomination.CurrentNominations, 1, -1 do
+        local entry = Nomination.CurrentNominations[i]
+        if entry.user == ply:UserID() then
+            table.remove(Nomination.CurrentNominations, i)
+            break
+        end
+    end
+end)

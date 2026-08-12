@@ -101,7 +101,7 @@ Nomination.AttemptToNominateMap = function (ply, map)
             net.Start("Nomination_Requested")
             net.WriteString(ply:Nick())
             net.WriteString(map)
-            net.Broadcast()
+            net.Send(ply)
 
             return NominationStatus.Success
         end
@@ -116,3 +116,12 @@ Nomination.AttemptToNominateMap = function (ply, map)
 
     return NominationStatus.Success
 end
+
+
+concommand.Add("mapvote_nominate", function (ply, cmd, args, argStr)
+    if #args > 0 then
+        Nomination.AttemptToNominateMap(ply, args[1])
+    else
+        Nomination.AttemptToNominateMap(ply, "")
+    end
+end, nil, "Nominates a map.")

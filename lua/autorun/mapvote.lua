@@ -27,6 +27,7 @@ local MapVoteConfigDefault = {
     EnableCooldown = true,
     MapsBeforeRevote = 3,
     RTVPlayerCount = 3,
+    NominationLimit = 24
     -- AutoGamemode = false
 }
 --Default Config
@@ -55,6 +56,9 @@ MapVote.ReladConfig = function ()
                 error("Cannot parse mapcycle.json as JSON")
             end
         end
+    end
+    if not MapVote.Config.NominationLimit then
+        MapVote.Config.NominationLimit = 24
     end
     if MapVote.Config.NominationLimit and MapVote.Config.MapLimit then
         if MapVote.Config.NominationLimit > MapVote.Config.MapLimit then
@@ -94,7 +98,7 @@ NominationStatus = {
     RecentlyPlayed = 2,
     MaxNominationReached = 3,
     NotInMapcycle = 4,
-    ClientAlreadyNominated = 5
+    MapAlreadyNominated = 5
 }
 
 --- @enum NominationMapStatus
@@ -108,7 +112,7 @@ NominationMapStatus = {
 if SERVER then
     AddCSLuaFile()
     AddCSLuaFile("mapvote/cl_mapvote.lua")
-    AddCSLuaFile("mapvote/cl_nominate.lua")
+    AddCSLuaFile("mapvote/cl_nomination.lua")
     include("mapvote/sv_mapvote.lua")
     include("mapvote/rtv.lua")
     include("mapvote/nomination.lua")

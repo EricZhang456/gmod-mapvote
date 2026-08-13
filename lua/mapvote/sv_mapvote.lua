@@ -43,6 +43,12 @@ end
 
 local function CoolDownDoStuff()
     local cooldownnum = MapVote.Config.MapsBeforeRevote or 3
+    --- hack
+    if cooldownnum == 0 then
+        recentmaps = {}
+        file.Write("mapvote/recentmaps.json", util.TableToJSON({}))
+        return
+    end
     while #recentmaps > cooldownnum do
         table.remove(recentmaps)
     end

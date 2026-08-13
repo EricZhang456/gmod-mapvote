@@ -31,6 +31,7 @@ local function FindMatchingMaps(map)
         targetMap = TrimString(map:lower())
     end
 
+    --- @type string[]
     local initialMapList = {}
     local mapResults = {}
     local mapcycle = MapVote.GetCurrentGameModeMapcycle()
@@ -47,20 +48,30 @@ local function FindMatchingMaps(map)
     end
 
     local currentGameMap = game.GetMap():lower()
-    for _, currMap in ipairs(initialMapList) do
+    for _, val in ipairs(initialMapList) do
         local mapStatus = NominationMapStatus.CanNominate
 
-        local currMapLower = currMap:lower()
-        if currentGameMap == currMapLower then
+        local entryMap = val:lower()
+        if currentGameMap == entryMap then
             mapStatus = NominationMapStatus.CurrentMap
-        elseif table.HasValue(MapVote.GetRecentMaps(), currMapLower) then
+        elseif table.HasValue(MapVote.GetRecentMaps(), entryMap) then
             mapStatus = NominationMapStatus.RecentlyPlayed
-        elseif table.HasValue(Nomination.CurrentNominations, currMapLower) then
-            mapStatus = NominationMapStatus.Nominated
+        else
+            local mapNominated = false
+            for _, k in ipairs(Nomination.CurrentNominations) do
+                if k.map == entryMap then
+                    mapNominated = true
+                    break
+                end
+            end
+
+            if mapNominated then
+                mapStatus = NominationMapStatus.Nominated
+            end
         end
 
         table.insert(mapResults, {
-            map = currMapLower,
+            map = entryMap,
             status = mapStatus
         })
     end
@@ -84,7 +95,8 @@ Nomination.AttemptToNominateMap = function (ply, map)
         end
     end
 
-    if not clientAlreadyNominated and #Nomination.CurrentNominations >= MapVote.Config.NominationLimit then
+    local nominationLimit = MapVote.Config.NominationLimit or 24
+    if not clientAlreadyNominated and #Nomination.CurrentNominations >= nominationLimit then
         return NominationStatus.MaxNominationReached
     end
 
@@ -102,15 +114,15 @@ Nomination.AttemptToNominateMap = function (ply, map)
     if #nominationSearch == 1 then
         local nominationMap = nominationSearch[1]
         if nominationMap.status == NominationMapStatus.RecentlyPlayed then
-            return NominationMapStatus.RecentlyPlayed
+            return NominationStatus.RecentlyPlayed
         elseif nominationMap.status == NominationMapStatus.Nominated then
-            return NominationMapStatus.Nominated
+            return NominationStatus.MapAlreadyNominated
         elseif nominationMap.status == NominationMapStatus.CurrentMap then
-            return NominationMapStatus.CurrentMap
+            return NominationStatus.CurrentMap
         else
             local nominationEntry = {
-                client = userId,
-                map = targetMap
+                user = userId,
+                map = nominationMap.map
             }
             if not clientAlreadyNominated then
                 table.insert(Nomination.CurrentNominations, nominationEntry)
@@ -120,7 +132,7 @@ Nomination.AttemptToNominateMap = function (ply, map)
 
             net.Start("Nomination_Requested")
             net.WriteString(ply:Nick())
-            net.WriteString(map)
+            net.WriteString(nominationMap.map)
             net.WriteBool(not clientAlreadyNominated)
             net.Broadcast()
 
@@ -156,7 +168,9 @@ local function ClientNominateCommand(ply, map)
     elseif nominationStatus == NominationStatus.MaxNominationReached then
         targetErrorStr = "#mapvote.nomination_max_reached"
     elseif nominationStatus == NominationStatus.NotInMapcycle then
-        targetErrorStr = "mapvote.nomination_not_in_mapcycle"
+        targetErrorStr = "#mapvote.nomination_not_in_mapcycle"
+    elseif nominationStatus == NominationStatus.MapAlreadyNominated then
+        targetErrorStr = "#mapvote.nomination_map_nominated"
     end
 
     ply:PrintMessage(HUD_PRINTTALK, targetErrorStr)
@@ -227,10 +241,10 @@ hook.Add("PlayerSay", "MapVoteNominationPlayerSay", function (sender, text, team
 
     if trimmedText:match("^!nominate") or trimmedText:match("^/nominate") then
         local parsedStr = parseArgs(text)
-        local mapParam = parsedStr[2]:lower()
+        local mapParam = parsedStr[2]
 
         if mapParam and mapParam ~= "" then
-            ClientNominateCommand(sender, mapParam)
+            ClientNominateCommand(sender, mapParam:lower())
         else
             ClientNominateCommand(sender, "")
         end

@@ -5,8 +5,6 @@ local mapStatusLookup = {
     [3] = NominationMapStatus.CurrentMap
 }
 
-local itemsPerPage = 5
-
 --- @class NominationMenu
 --- @field maps {name: string, status:NominationMapStatus}[]
 --- @field panel Panel | nil

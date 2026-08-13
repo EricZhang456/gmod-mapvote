@@ -179,3 +179,60 @@ hook.Add("PlayerDisconnected", "MapVoteNominationDisconnect", function (ply)
         end
     end
 end)
+
+--- google ai wrote this, it works so whatever
+--- @param text string
+--- @return string[]
+local function parseArgs(text)
+    local results = {}
+    local pos = 1
+
+    while pos <= #text do
+        -- Find the next occurrence of each pattern starting from 'pos'
+        local d_start, d_end, d_cap = text:find('"(.-)"', pos)
+        local s_start, s_end, s_cap = text:find("'([^']-)'", pos)
+        local n_start, n_end, n_cap = text:find("(%S+)", pos)
+
+        -- Find which match appears first in the string
+        local min_start = math.huge
+        local best_end, best_cap
+
+        if d_start and d_start < min_start then
+            min_start, best_end, best_cap = d_start, d_end, d_cap
+        end
+        if s_start and s_start < min_start then
+            min_start, best_end, best_cap = s_start, s_end, s_cap
+        end
+        if n_start and n_start < min_start then
+            min_start, best_end, best_cap = n_start, n_end, n_cap
+        end
+
+        -- If a match was found, save it and move the pointer past it
+        if min_start ~= math.huge then
+            table.insert(results, best_cap)
+            pos = best_end + 1
+        else
+            break -- No more matches found in the remaining text
+        end
+    end
+
+    return results
+end
+
+hook.Add("PlayerSay", "MapVoteNominationPlayerSay", function (sender, text, teamChat)
+    local trimmedText = TrimString(text:lower())
+    if trimmedText == "" then
+        return
+    end
+
+    if trimmedText:match("^!nominate") or trimmedText:match("^/nominate") then
+        local parsedStr = parseArgs(text)
+        local mapParam = parsedStr[2]:lower()
+
+        if mapParam and mapParam ~= "" then
+            ClientNominateCommand(sender, mapParam)
+        else
+            ClientNominateCommand(sender, "")
+        end
+    end
+end)

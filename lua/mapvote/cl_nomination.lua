@@ -7,7 +7,7 @@ local mapStatusLookup = {
 
 --- @class NominationMenu
 --- @field maps {name: string, status:NominationMapStatus}[]
---- @field panel Panel | nil
+--- @field panel DFrame | nil
 local NominationMenu = {}
 NominationMenu.__index = NominationMenu
 
@@ -25,7 +25,7 @@ end
 function NominationMenu:show()
     self.panel = vgui.Create("DFrame")
     self.panel:Center()
-    self.panel:SetText(language.GetPhrase("mapvote.nomination_menu_title"))
+    self.panel:SetTitle(language.GetPhrase("mapvote.nomination_menu_title"))
     self.panel:SetSize(300, 500)
     self.panel:MakePopup()
 
@@ -33,23 +33,19 @@ function NominationMenu:show()
     mapScrollPanel:Dock(FILL)
     for i, val in ipairs(self.maps) do
         local button = mapScrollPanel:Add("DButton")
-        button:SetHeight(50)
-        local marginTop = 0
-        local marginBottom = 15
-        if i == 1 then
-            marginTop = 5
-        end
-
-        if i == #self.maps then
-            marginBottom = 5
-        end
-
-        button:DockMargin(5, marginTop, 5, marginBottom)
+        button:Dock(TOP)
+        button:SetHeight(25)
+        button:DockMargin(5, 5, 5, 5)
 
         local mapEnabled = val.status == NominationMapStatus.CanNominate
         if mapEnabled then
             button:SetText(val.name)
-            button:SetConsoleCommand("mapvote_nominate", val.name)
+            button.DoClick = function ()
+                RunConsoleCommand("mapvote_nominate", val.name)
+                if IsValid(self.panel) then
+                    self.panel:Close()
+                end
+            end
         else
             local statusStr = ""
             if val.status == NominationMapStatus.RecentlyPlayed then

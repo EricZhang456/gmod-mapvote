@@ -61,7 +61,6 @@ RTV.RemoveVote = function (ply)
 	return false
 end
 
-
 RTV.Start = function ()
 	if GAMEMODE_NAME == "terrortown" then
 		net.Start("RTV_Delay")

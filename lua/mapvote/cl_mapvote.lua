@@ -60,7 +60,7 @@ net.Receive("RAM_MapVoteCancel", function()
     end
 end)
 net.Receive("RTV_Delay", function()
-    chat.AddText(Color( 255,255,255 ), language.GetPhrase("mapvote.rtv_success_delayed"))
+    chat.AddText(color_white, language.GetPhrase("mapvote.rtv_success_delayed"))
 end)
 
 net.Receive("RTV_Requested", function (len, ply)
@@ -162,7 +162,7 @@ function PANEL:AddVoter(voter)
         draw.RoundedBox(4, 0, 0, w, h, Color(255, 0, 0, 80))
         if icon_container.img then
             surface.SetMaterial(icon_container.img)
-            surface.SetDrawColor(Color(255, 255, 255))
+            surface.SetDrawColor(color_white)
             surface.DrawTexturedRect(2, 2, 16, 16)
         end
     end

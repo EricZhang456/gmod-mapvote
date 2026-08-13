@@ -123,4 +123,5 @@ if SERVER then
     resource.AddFile("resource/localization/en/mapvote.properties")
 else
     include("mapvote/cl_mapvote.lua")
+    include("mapvote/cl_nomination.lua")
 end

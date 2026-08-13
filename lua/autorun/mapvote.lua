@@ -64,15 +64,7 @@ MapVote.ReladConfig = function ()
     end
     ServerLog("Reloaded mapvote config\n")
 end
-MapVote.HasExtraVotePower = function (ply)
-	-- Example that gives admins more voting power
-	--[[
-    if ply:IsAdmin() then
-		return true
-	end 
-    ]]
-	return false
-end
+
 MapVote.CurrentMaps = {}
 MapVote.Votes = {}
 MapVote.Allow = false

@@ -150,14 +150,8 @@ function PANEL:AddVoter(voter)
     icon_container.Player = voter
     icon_container:SetTooltip(voter:Name())
     icon:SetPlayer(voter, 16)
-    if MapVote.HasExtraVotePower(voter) then
-        icon_container:SetSize(40, 20)
-        icon:SetPos(21, 2)
-        icon_container.img = star_mat
-    else
-        icon_container:SetSize(20, 20)
-        icon:SetPos(2, 2)
-    end
+    icon_container:SetSize(20, 20)
+    icon:SetPos(2, 2)
     icon_container.Paint = function(s, w, h)
         draw.RoundedBox(4, 0, 0, w, h, Color(255, 0, 0, 80))
         if icon_container.img then
@@ -180,11 +174,7 @@ function PANEL:Think()
                 v:Remove()
             else
                 local bar = self:GetMapButton(MapVote.Votes[v.Player:SteamID()])
-                if MapVote.HasExtraVotePower(v.Player) then
-                    bar.NumVotes = bar.NumVotes + 2
-                else
-                    bar.NumVotes = bar.NumVotes + 1
-                end
+                bar.NumVotes = bar.NumVotes + 1
                 if IsValid(bar) then
                     local CurrentPos = Vector(v.x, v.y, 0)
                     local NewPos = Vector((bar.x + bar:GetWide()) - 21 * bar.NumVotes - 2, bar.y + (bar:GetTall() * 0.5 - 10), 0)

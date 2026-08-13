@@ -41,6 +41,12 @@ local function FindMatchingMaps(map)
     else
         for _, mapcycleMap in ipairs(mapcycle) do
             local mapcycleMapLower = mapcycleMap:lower()
+            --- break out of loop if we have an exact match
+            if mapcycleMapLower == targetMap then
+                table.insert(initialMapList, mapcycleMapLower)
+                break
+            end
+
             if string.find(mapcycleMapLower, map, 1, true) then
                 table.insert(initialMapList, mapcycleMapLower)
             end

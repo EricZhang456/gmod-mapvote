@@ -24,9 +24,9 @@ end
 --- Show the menu to the user
 function NominationMenu:show()
     self.panel = vgui.Create("DFrame")
-    self.panel:Center()
     self.panel:SetTitle(language.GetPhrase("mapvote.nomination_menu_title"))
     self.panel:SetSize(300, 500)
+    self.panel:Center()
     self.panel:MakePopup()
 
     local mapScrollPanel = vgui.Create("DScrollPanel", self.panel)

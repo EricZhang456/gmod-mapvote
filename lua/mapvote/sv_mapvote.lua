@@ -117,6 +117,10 @@ MapVote.Start = function (length, current, limit, prefix, callback)
         for _, map in RandomPairs(mapCycle) do
             local map = map:lower()
             local currentMap = game.GetMap():lower()
+
+            if table.HasValue(vote_maps, map) then
+                continue
+            end
             if not current and currentMap == map then
                 continue
             end

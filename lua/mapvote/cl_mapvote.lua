@@ -12,16 +12,20 @@ surface.CreateFont("RAM_VoteFontCountdown", {
     antialias = true,
     shadow = true
 })
-surface.CreateFont("RAM_VoteSysButton",
-{
+surface.CreateFont("RAM_VoteSysButton", {
     font = "Marlett",
     size = 13,
     weight = 0,
     symbol = true,
 })
+
+local isVotingInProgress = false
+
 MapVote.EndTime = 0
 MapVote.Panel = false
+
 net.Receive("RAM_MapVoteStart", function()
+    isVotingInProgress = true
     MapVote.CurrentMaps = {}
     MapVote.Allow = true
     MapVote.Votes = {}
@@ -55,6 +59,7 @@ net.Receive("RAM_MapVoteUpdate", function()
     end
 end)
 net.Receive("RAM_MapVoteCancel", function()
+    isVotingInProgress = false
     if IsValid(MapVote.Panel) then
         MapVote.Panel:Remove()
     end
@@ -254,3 +259,27 @@ function PANEL:Flash(id)
     end
 end
 derma.DefineControl("RAM_VoteScreen", "", PANEL, "DPanel")
+
+hook.Add("Initialize", "ClMapVoteResetMapVoteInProgress", function ()
+    isVotingInProgress = false
+end)
+
+--- @param s string
+--- @return string
+local function TrimString(s)
+    return s:match( "^%s*(.-)%s*$" )
+end
+
+hook.Add("OnPlayerChat", "ClMapVoteRevote", function (ply, text, teamChat, isDead)
+    if ply ~= LocalPlayer() then
+        return
+    end
+
+    local strText = TrimString(text):lower()
+
+    if strText == "!revote" or strText == "/revote" then
+        if isVotingInProgress and MapVote.Panel then
+            MapVote.Panel:SetVisible(true)
+        end
+    end
+end)
